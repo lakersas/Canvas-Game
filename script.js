@@ -1,6 +1,7 @@
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
-let enemyPosition = 0;
+
+
 
 // Class for every object in the game
 class Player {
@@ -35,27 +36,53 @@ class Asteroid {
     }
 
     draw() {
-        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height - 30, 30, 0, Math.PI * 2);
+        ctx.fillStyle = "#7FFFD4";
+        ctx.fill();
+        ctx.closePath();
     }
 }
 
 class enemyAsteroid {
-    constructor(size, speed) {
-        this.size = size;
-        this.speed = speed;
-        this.x = 0;
-        this.y = 0;
-        this.friendly = false;
+    constructor(enemyRadius, x, y, dx, dy) {
+        this.x = Math.random() * (canvas.width - (canvas.width - canvas.width)) + (canvas.width - canvas.width);
+        this.y = Math.random() * (canvas.height - (canvas.height - canvas.height)) + (canvas.height - canvas.height);
+        this.enemyRadius = enemyRadius;
+        this.x = x;
+        this.y = y;
+        this.dx = dx;
+        this.dy = dy;
     }
 
     update(deltaTime) {
         this.x += deltaTime * this.speed;
     }
 
-    draw() {
-        ctx.fillRect(this.x, this.y, this.size, this.size);
+    drawEnemy() {
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height - 20, 30, 0, Math.PI * 2);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+        ctx.closePath();
     }
+    enemyMovementAsteroid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawEnemy();
+
+        if (x + dx > canvas.width - enemyRadius || x + dx < enemyRadius) {
+            dx = -dx;
+        }
+        if (y + dy > canvas.height - enemyRadius || y + dy < enemyRadius) {
+            dy = -dy;
+        }
+
+        x += dx;
+        y += dy;
+    }
+
 }
+
 
 // In game objects , enemy and player
 const gameData = {
@@ -64,7 +91,7 @@ const gameData = {
     previousFrameTime: 0,
     player: new Player(),
     gameStart: false,
-    enemy: new enemyAsteroid()
+    enemy: new enemyAsteroid(),
 };
 
 // Display In Game
@@ -93,8 +120,6 @@ function updateGameData() {
         asteroid.update(deltaTime);
     }
 
-    enemyPosition++;
-
     gameData.previousFrameTime = currentTime;
 }
 
@@ -107,13 +132,11 @@ function drawFrame() {
     }
 
     if (gameData.gameStart === true)
+        gameData.enemy.enemyMovementAsteroid();
+
+    if (gameData.gameStart === true)
         gameData.player.draw();
 
-    // just to see if objects appear , need to make them in game.
-    ctx.fillRect(enemyPosition, 200, 100, 100);
-    ctx.fillRect(50, enemyPosition, 100, 100);
-    ctx.fillRect(200, enemyPosition, 100, 100);
-    ctx.fillRect(enemyPosition, 30, 100, 100);
 
 }
 
@@ -152,5 +175,58 @@ function getMousePosition(event) {
     }
 }
 
+//Enemy Functions
+let enemyRadius = 20;
+let x = canvas.width / 2;
+let y = canvas.height - 30;
+let dx = 2;
+let dy = -2;
+let raf;
+
+function drawEnemy() {
+    ctx.beginPath();
+    ctx.arc(x, y, enemyRadius, 0, Math.PI * 2);
+    ctx.fillStyle = "#0095DD";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function enemyMovementAsteroid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawEnemy();
+
+    if (x + dx > canvas.width - enemyRadius || x + dx < enemyRadius) {
+        dx = -dx;
+    }
+    if (y + dy > canvas.height - enemyRadius || y + dy < enemyRadius) {
+        dy = -dy;
+    }
+
+    x += dx;
+    y += dy;
+}
+
+// More asteroids
+
+let moreAsteroids = [];
+for (let i = 0; i < 5; i++) {
+    moreAsteroids[i] = new enemyAsteroid();
+}
+
+function asteroidAmount() {
+    moreAsteroids[0].ctx.clearRect(0, 0, canvas.width, canvas.height);
+    moreAsteroids.forEach(function(b) {
+        b.drawEnemy(b);
+        b.enemyMovementAsteroid(b);
+    });
+
+    raf = window.requestAnimationFrame(asteroidAmount);
+}
+
+canvas.addEventListener('click', function(b) {
+    raf = window.requestAnimationFrame(asteroidAmount);
+});
+
 // Game Start
 initGame();
+setInterval(enemyMovementAsteroid, 5);
